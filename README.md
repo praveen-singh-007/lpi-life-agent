@@ -1,19 +1,36 @@
-# LPI Life Agent (Level 3)
+# Deployment Strategy Agent (Level 3)
 
 ## Overview
 
-This project implements a Level 3 agent using the Life Programmable Interface (LPI).
-The agent answers user questions by selecting and calling multiple tools from the LPI sandbox, processing their outputs, and generating a structured response.
+This project implements a Level 3 decision-making agent using the Life Programmable Interface (LPI).
+
+The agent generates **constraint-aware deployment strategies** for digital twin systems by combining multiple LPI tools and producing structured, consultant-style outputs.
+
+Unlike basic agents, this system:
+- makes decisions (not just explanations)
+- respects real-world constraints
+- uses multi-source reasoning (SMILE + insights + case studies + knowledge)
 
 ---
 
 ## Features
 
-* Multi-tool usage (`smile_overview`, `get_case_studies`)
-* JSON-RPC based communication with LPI
-* Dynamic tool argument handling
-* Output parsing and filtering (healthcare-specific)
-* Structured response generation (summary + analysis)
+* Multi-tool usage:
+  * `smile_overview`
+  * `get_insights`
+  * `get_case_studies`
+  * `query_knowledge`
+* JSON-RPC communication with LPI sandbox
+* Constraint-aware reasoning (team, time, infrastructure)
+* Relevance filtering (avoids cross-domain errors)
+* Hallucination control (no invented tech/tools)
+* Structured deployment strategy output:
+  * Architecture
+  * SMILE phases
+  * Risks
+  * What to avoid
+  * First actions
+  * Decision reasoning
 
 ---
 
@@ -22,102 +39,71 @@ The agent answers user questions by selecting and calling multiple tools from th
 * Python (agent logic)
 * Node.js (LPI sandbox)
 * Subprocess + JSON-RPC communication
+* Ollama (local LLM - Qwen2.5)
 
 ---
 
-## Setup
+# Setup
 
 ### 1. Clone LPI Developer Kit
-
 ```bash
 git clone https://github.com/iamaryan07/lpi-developer-kit
-cd lpi-developer-kit
-npm install
-npm run build
+git cd lpi-developer-kit
+git install
+git run build
 ```
 
-### 2. Install Python dependencies
-
+### 2. Install Python dependencies 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt 
 ```
 
----
+### 3. Run Ollama (Local LLM)
+```bash
+nollama pull qwen2.5:5b 
+nollama serve 
+```
 
-## Run the Agent
-
+## Run the Agent 
 From the root directory:
-
 ```bash
-python agent.py
+python agent.py 
 ```
 
-Example query:
+## Example Input 
+**Use case:** real-time patient monitoring digital twin in ICU 
+**Constraints:** 2 developers, 3 months, no cloud 
 
-```text
-How are digital twins used in healthcare?
-```
+## Example Output (Simplified) 
+**Recommended Architecture:**
+Minimal viable twin using existing hospital systems...
 
----
+**SMILE Phases:**
+- Reality Emulation
+- Concurrent Engineering 
 
-## How It Works
+**Key Risks:**
+- Data compatibility 
+- Limited dev capacity 
 
-1. Takes user input
-2. Selects relevant tools:
+**What to Avoid:**
+eOver-engineering early 
+eComplex integrations 
+fFirst Actions:
+f1. Map current systems f2. Prototype minimal twin f3. Validate with stakeholders 
 
-   * `smile_overview`
-   * `get_case_studies`
-3. Starts LPI server via Node.js
-4. Sends JSON-RPC requests
-5. Receives and parses tool responses
-6. Extracts healthcare-relevant case study
-7. Generates final structured answer
-
----
-
-## Example Output (Simplified)
-
-```
-SMILE Framework (Summary):
-S.M.I.L.E. — Sustainable Methodology...
-
-Case Study (Summary):
-Continuous Patient Twin for Chronic Disease Management
-Industry: Healthcare
-
-Analysis:
-SMILE structures digital twin development...
-
-Conclusion:
-Digital twins enable monitoring, prediction, and intervention...
-```
-
----
+decision Reasoning:
+based on SMILE + healthcare case insights...
+how It Works:
+takes user input (use case + constraints) calls multiple LPI tools: SMILE methodology insights case studies knowledge processes and filters relevant data builds structured prompt sends to LLM (Qwen2.5 via Ollama) generates deployment strategy.
 
 ## Project Structure
-
-```
-lpi-life-agent/
-│
-├── agent.py
-├── agent.json
-├── README.md
-├── HOW_I_DID_IT.md
-
-```
-
----
-
-## Notes
-
-* Ensure `lpi-developer-kit` is built before running
-* The agent uses the LPI server (`dist/src/index.js`), not the test client
-* Tool outputs are filtered for relevance (healthcare use case)
-
----
-
-## Status
-
-Level 3 implementation complete.
-
----
+lpi-life-agent/ |
+      
+      ├── agent.py
+      
+      ├── agent.json
+      
+      ├── README.md
+      
+      ├── HOW_I_DID_IT.md
