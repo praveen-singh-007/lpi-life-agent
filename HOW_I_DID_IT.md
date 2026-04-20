@@ -1,161 +1,149 @@
-# HOW_I_DID_IT
-
-## Overview
-
-I built a Python-based agent that connects to the LPI (Life Programmable Interface) sandbox and answers questions by selecting and calling relevant tools. The agent uses multiple tools, processes their outputs, and generates a structured response.
-
----
+# How I Did It - Deployment Strategy Agent (Level 3)
 
 ## Approach
 
-### 1. Understanding the LPI Setup
+After Level 2, I decided to build a **decision-oriented agent** instead of a descriptive one.
 
-* Explored the LPI Developer Kit to understand available tools.
-* Identified that tools are exposed via a Node.js server (`dist/src/index.js`), not the test client.
-* Learned that communication follows a JSON-RPC pattern.
+The goal was simple:
 
----
+```Given a use case and constraints, generate a realistic deployment strategy.```
 
-### 2. Building the Agent
-
-* Created a Python script (`agent.py`) to:
-
-  * Accept user input
-  * Select relevant tools
-  * Call tools via subprocess (Node.js)
-  * Process and combine results
+I kept the implementation minimal and focused on:
+- multi-tool reasoning
+- constraint-aware output
+- structured decision-making
 
 ---
 
-### 3. Tool Integration
+## Key Decisions
 
-* Used two tools:
+### 1. Moving from explanation → decision agent
 
-  * `smile_overview` → for methodology explanation
-  * `get_case_studies` → for real-world examples
+Instead of answering:
+> “What are digital twins?”
 
-* Implemented subprocess communication:
+I designed the agent to answer:
+> “How should we build this under constraints?”
 
-  * Started Node server using `subprocess.Popen`
-  * Sent JSON-RPC requests via stdin
-  * Received responses via stdout
-
----
-
-### 4. Handling Protocol Issues
-
-Initial attempts failed due to:
-
-* Using `test-client.js` instead of the actual server
-* Missing initialization step
-
-Fixes:
-
-* Switched to `dist/src/index.js`
-* Added:
-
-  ```json
-  {"jsonrpc": "2.0", "method": "notifications/initialized"}
-  ```
+This required:
+- structured outputs (architecture, risks, actions)
+- justification of decisions
 
 ---
 
-### 5. Parsing Tool Output
+### 2. Expanding tool usage
 
-* Tool responses returned nested JSON:
+Initial setup with 2 tools was not enough.
 
-  ```json
-  {
-    "result": {
-      "content": [
-        { "type": "text", "text": "..." }
-      ]
-    }
-  }
-  ```
-* Extracted actual text using:
+I moved to 4 tools:
+- SMILE overview (methodology)
+- Insights (scenario reasoning)
+- Case studies (real grounding)
+- Knowledge (context)
 
-  ```python
-  result["content"][0]["text"]
-  ```
+Decision:
+> prioritize **multi-source grounding over simplicity**
+---
+
+### 3. Enforcing constraints as a core signal
+Most LLM outputs ignore real-world limits.
+
+I explicitly designed the agent to reason with:
+- team size
+- timeline
+- infrastructure
+
+Decision:
+> treat constraints as **primary drivers**, not optional context"
+---
+
+### 4. Choosing structured output format
+I forced the agent to always return:
+- Architecture 
+- SMILE phases 
+- Risks 
+- What to avoid 
+- First actions 
+- Decision reasoning 
+Decision:
+> structure improves both **quality and evaluation**
+---
+# Challenges Faced
+
+### 1. MCP process failures
+**Problem:**
+- default: ValueError: I/O operation on closed file 
+- description: Reusing subprocess after `.communicate()`
+- decision: spawn a new process per tool call
+- outcome: Stable multi-tool execution
 
 ---
 
-### 6. Improving Relevance
-
-Problem:
-
-* Case studies returned multiple industries, not always healthcare.
-
-Fix:
-
-* Modified tool arguments:
-
-  ```python
-  {"query": "healthcare digital twin"}
-  ```
-* Extracted only the healthcare-related section from the response.
+### 2. Weak reasoning from small model
+**Problem:**
+t-shallow outputs, generic answers
+**Decision:** upgrade from `qwen2.5:1.5b` to `qwen2.5:7b`
+**Outcome:**
+- better structure 
+- improved reasoning 
+- fewer errors
 
 ---
 
-### 7. Result Processing
-
-* Implemented simple summarization:
-
-  * Trimmed text instead of splitting sentences (to avoid broken headings)
-* Combined:
-
-  * SMILE methodology summary
-  * Healthcare case study
-  * Analysis + conclusion
-
----
-
-## Challenges Faced
-
-### 1. Incorrect Tool Execution
-
-* Initially used `test-client.js`
-* Result: only test logs, no usable data
-
-### 2. Path and Environment Issues
-
-* Node process couldn’t find server files
-* Fixed using:
-
-  ```python
-  cwd="lpi-developer-kit"
-  ```
-
-### 3. Empty Outputs
-
-* Caused by incorrect JSON parsing and incomplete reads
-* Fixed using `process.communicate()` and proper parsing
-
-### 4. Irrelevant Case Study Results
-
-* Default tool output included multiple industries
-* Fixed by filtering healthcare-specific content
+### 3. Hallucinated technologies
+**Problem:**
+tool introduced tools/tech not in data; outputs looked impressive but incorrect.
+**Decision:**
+- explicitly block:
+  - invented technologies 
+  - invented tools 
+enforce “use only provided data”
+**Outcome:** More reliable outputs.
 
 ---
 
-## Key Learnings
+### 4. Irrelevant case study usage
+**Problem:**
+e.g., model used unrelated domains (e.g., heating systems for healthcare).
+**Decision:**
+- add relevance filtering:
+  - ignore cross-domain examples 
+  - only use context-matching data.
+**Outcome:** Improved correctness and credibility.
 
-* Tool-based agents depend more on **data flow and integration** than model complexity
-* Correct environment setup is critical (paths, working directory, build)
-* Parsing structured responses properly is essential
-* Multi-tool orchestration improves answer quality significantly
-* Relevance filtering is necessary when tools return broad results
+---
+
+### 5. Over-engineered solutions
+**Problem:**
+del suggested complex systems despite tight constraints.
+**Decision:**
+- enforce:
+  - minimal viable twin (MVT)
+  - “simplest possible architecture”.
+**Outcome:** Realistic, implementable strategies.
 
 ---
 
-## Final Outcome
+### 6. Prompt instability
+**Problem:**
+e.g., too strict → empty/generic output; too loose → hallucinations.
+**Decision:**
+balance:
+- strict grounding rules 
+and flexible reasoning.
+**Outcome:** Consistent, high-quality outputs.
 
-The agent:
-
-* Uses multiple tools
-* Retrieves real data from LPI
-* Processes and filters results
-* Produces structured, relevant answers
-
+## What I Learned
+### 1. Prompt design > code
+Most improvements came from:
+highlighting:- refining instructions,
+enforcing constraints,
+guiding structure.
 ---
+### 2. Constraints improve intelligence
+Without constraints:
+general answers.
+sWith constraints:
+appropriate, practical answers.
+---
+day-to-day learning about the importance of grounding and relevance in AI systems is crucial for reliable performance and trustworthy outputs.
