@@ -1,0 +1,72 @@
+{
+  "schema_version": "v1",
+  "name": "lpi-digital-twin-agent",
+  "description": "Agent that queries LPI tools to generate structured answers combining SMILE methodology and healthcare digital twin case studies.",
+  "version": "1.0.0",
+  "protocol": "a2a",
+  "author": {
+    "name": "Your Name",
+    "contact": "your.email@example.com"
+  },
+  "capabilities": {
+    "streaming": false,
+    "multi_turn": false,
+    "tool_usage": true
+  },
+  "inputs": [
+    {
+      "name": "query",
+      "type": "string",
+      "description": "User question related to digital twins or SMILE methodology",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "name": "final_answer",
+      "type": "string",
+      "description": "Structured response combining SMILE summary, healthcare case study, and analysis"
+    }
+  ],
+  "tools": [
+    {
+      "name": "smile_overview",
+      "description": "Fetches SMILE methodology overview for digital twins",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "get_case_studies",
+      "description": "Retrieves case studies, filtered for healthcare digital twin applications",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" }
+        },
+        "required": ["query"]
+      }
+    }
+  ],
+  "execution": {
+    "type": "local_subprocess",
+    "entry_point": "agent.py",
+    "runtime": "python3",
+    "description": "Executes agent logic, calls LPI Node server, processes and filters results"
+  },
+  "workflow": {
+    "steps": [
+      "Accept user query",
+      "Select tools (smile_overview, get_case_studies)",
+      "Call LPI server via subprocess",
+      "Parse JSON-RPC responses",
+      "Filter healthcare-specific case studies",
+      "Summarize SMILE and case data",
+      "Generate structured final answer"
+    ]
+  }
+}
