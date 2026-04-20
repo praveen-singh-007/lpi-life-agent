@@ -1,72 +1,109 @@
 {
-  "schema_version": "v1",
-  "name": "lpi-digital-twin-agent",
-  "description": "Agent that queries LPI tools to generate structured answers combining SMILE methodology and healthcare digital twin case studies.",
+  "name": "deployment_strategy_agent",
   "version": "1.0.0",
-  "protocol": "a2a",
-  "author": {
-    "name": "Your Name",
-    "contact": "your.email@example.com"
+  "description": "Generates constraint-aware deployment strategies for digital twin systems using SMILE methodology, case studies, insights, and knowledge sources.",
+  
+  "type": "decision_agent",
+  "category": "digital_twin_strategy",
+
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "use_case": {
+        "type": "string",
+        "description": "Specific problem or system to implement (e.g., ICU patient monitoring digital twin)"
+      },
+      "constraints": {
+        "type": "string",
+        "description": "Real-world limitations (e.g., team size, timeline, budget, infrastructure)"
+      }
+    },
+    "required": ["use_case", "constraints"]
   },
-  "capabilities": {
-    "streaming": false,
-    "multi_turn": false,
-    "tool_usage": true
+
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "recommended_architecture": {
+        "type": "string",
+        "description": "High-level system design respecting constraints"
+      },
+      "smile_phases": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "phase": { "type": "string" },
+            "justification": { "type": "string" }
+          }
+        }
+      },
+      "risks": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "avoid": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "first_actions": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "decision_reasoning": {
+        "type": "string",
+        "description": "Explanation linking SMILE + insights + case studies to decisions"
+      }
+    }
   },
-  "inputs": [
-    {
-      "name": "query",
-      "type": "string",
-      "description": "User question related to digital twins or SMILE methodology",
-      "required": true
-    }
-  ],
-  "outputs": [
-    {
-      "name": "final_answer",
-      "type": "string",
-      "description": "Structured response combining SMILE summary, healthcare case study, and analysis"
-    }
-  ],
+
   "tools": [
     {
       "name": "smile_overview",
-      "description": "Fetches SMILE methodology overview for digital twins",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "query": { "type": "string" }
-        },
-        "required": ["query"]
-      }
+      "purpose": "Provides SMILE methodology concepts and phases"
+    },
+    {
+      "name": "get_insights",
+      "purpose": "Returns scenario-specific insights"
     },
     {
       "name": "get_case_studies",
-      "description": "Retrieves case studies, filtered for healthcare digital twin applications",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "query": { "type": "string" }
-        },
-        "required": ["query"]
-      }
+      "purpose": "Provides real-world examples relevant to the use case"
+    },
+    {
+      "name": "query_knowledge",
+      "purpose": "Fetches supporting domain knowledge"
     }
   ],
-  "execution": {
-    "type": "local_subprocess",
-    "entry_point": "agent.py",
-    "runtime": "python3",
-    "description": "Executes agent logic, calls LPI Node server, processes and filters results"
+
+  "reasoning": {
+    "type": "multi_source",
+    "description": "Combines SMILE methodology, insights, case studies, and knowledge to produce grounded deployment strategies"
   },
-  "workflow": {
-    "steps": [
-      "Accept user query",
-      "Select tools (smile_overview, get_case_studies)",
-      "Call LPI server via subprocess",
-      "Parse JSON-RPC responses",
-      "Filter healthcare-specific case studies",
-      "Summarize SMILE and case data",
-      "Generate structured final answer"
-    ]
-  }
+
+  "constraints_handling": {
+    "enabled": true,
+    "description": "All outputs must respect team size, timeline, and infrastructure constraints"
+  },
+
+  "grounding_rules": [
+    "Use only provided tool data",
+    "Do not invent technologies or tools",
+    "Do not assume system components unless explicitly present",
+    "Prefer minimal viable solution (MVT)",
+    "Ignore irrelevant domain case studies"
+  ],
+
+  "decision_style": {
+    "mode": "consultant",
+    "description": "Produces structured, actionable, and justified decisions rather than explanations"
+  },
+
+  "evaluation_criteria": [
+    "Constraint compliance",
+    "Grounding in tool data",
+    "Relevance to use case",
+    "Clarity of decisions",
+    "Actionability"
+  ]
 }
