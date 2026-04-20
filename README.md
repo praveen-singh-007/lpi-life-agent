@@ -100,10 +100,10 @@ Digital twins enable monitoring, prediction, and intervention...
 lpi-life-agent/
 │
 ├── agent.py
+├── agent.json
 ├── README.md
 ├── HOW_I_DID_IT.md
-├── requirements.txt
-└── lpi-developer-kit/
+
 ```
 
 ---
